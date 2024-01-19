@@ -1,26 +1,38 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import Annotator from "components/Annotator";
+import PdfDocuments from "components/PdfDocuments";
+import { styled } from "styled-components";
 
-function App() {
+
+const PageContainer = styled.div`
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+`
+
+
+const App = () => {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <>
+      {/* <PdfDocuments /> */}
+      <PageContainer>
+        <Annotator
+          regionTagList={["has-bun"]}
+          regionClsList={["hotdog", "not-hotdog"]}
+          images={[
+            {
+              src: "https://upload.wikimedia.org/wikipedia/commons/b/b1/VAN_CAT.png",
+              name: "hot-dogs-1",
+            }
+          ]}
+          onExit={(output) => {
+            console.log(output);
+          }}
+        />
+      </PageContainer>
+    </>
+  )
 }
+
 
 export default App;
