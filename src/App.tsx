@@ -17,8 +17,8 @@ const App = () => {
       {/* <PdfDocuments /> */}
       <PageContainer>
         <Annotator
-          regionTagList={["has-bun"]}
-          regionClsList={["hotdog", "not-hotdog"]}
+          regionTagList={["fur", "whisker", "organ"]}
+          regionClsList={["cat", "not-cat"]}
           images={[
             {
               src: "https://upload.wikimedia.org/wikipedia/commons/b/b1/VAN_CAT.png",

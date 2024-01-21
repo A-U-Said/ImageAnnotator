@@ -17,42 +17,42 @@ const Container = styled.div`
 
 interface IPreventScrollToParentsProps {
   children: React.ReactNode;
+  onMouseMove?: (e: React.MouseEvent) => void;
+  onMouseDown?: (e: React.MouseEvent) => any;
+  onMouseUp?: (e: React.MouseEvent) => any;
+  onWheel?: (e: React.WheelEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
   style?: React.CSSProperties;
-  onMouseMove?: (e: any) => void;
-  onMouseDown?: (e: any, specialEvent?: {}) => any;
-  onMouseUp?: (e: any) => any;
-  onWheel?: (e: any) => void;
-  onContextMenu?: (e: any) => void;
 }
 
 
 const PreventScrollToParents: React.FC<IPreventScrollToParentsProps> = ({ 
   children,
-  style,
   onMouseMove,
   onMouseDown,
   onMouseUp,
   onWheel,
-  onContextMenu
+  onContextMenu,
+  style
 }) => {
 
-  const [mouseOver, changeMouseOver] = useState<boolean>(false)
+  const [mouseOver, changeMouseOver] = useState<boolean>(false);
   
-  const _onMouseMove = useEventCallback((e) => {
+  const _onMouseMove = useEventCallback((e: React.MouseEvent) => {
     if (!mouseOver) {
-      changeMouseOver(true)
+      changeMouseOver(true);
     }
     if (onMouseMove) {
-      onMouseMove(e)
+      onMouseMove(e);
     }
   })
 
-  const onMouseLeave = useEventCallback((e) => {
+  const onMouseLeave = useEventCallback((e: React.MouseEvent) => {
     setTimeout(() => {
       if (mouseOver) {
-        changeMouseOver(false)
+        changeMouseOver(false);
       }
-    }, 100)
+    }, 100);
   })
 
   return (

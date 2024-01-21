@@ -3,6 +3,7 @@
 import React, { useRef, memo } from "react"
 import { Region } from "./types/annotator.types"
 import styled from "styled-components"
+import Select from "./Selector"
 
 
 const AnnotationBox = styled.div`
@@ -24,14 +25,10 @@ interface IRegionLabelProps {
   editing?: boolean,
   allowedClasses?: Array<string>,
   allowedTags?: Array<string>,
-  cls?: string,
-  tags?: Array<string>,
-  onDelete: (region: Region) => null,
-  onChange: (region: Region) => null,
-  onClose?: (region: Region) => null,
-  onOpen?: (region: Region) => null,
-  onRegionClassAdded?: () => {},
-  allowComments?: boolean,
+  onDelete: (region: Region) => void,
+  onChange: (region: Region) => void,
+  onClose?: (region: Region) => void,
+  onOpen?: (region: Region) => void,
 }
 
 const RegionLabel: React.FC<IRegionLabelProps> = ({
@@ -43,19 +40,7 @@ const RegionLabel: React.FC<IRegionLabelProps> = ({
   onChange,
   onClose,
   onOpen,
-  onRegionClassAdded,
-  allowComments,
 }) => {
-
-  const commentInputRef = useRef(null)
-  const onCommentInputClick = () => {
-    // The TextField wraps the <input> tag with two divs
-    const commentInput = commentInputRef.current.children[0].children[0]
-
-    if (commentInput) {
-      return commentInput.focus()
-    }
-  }
 
   return (
       <AnnotationBox onClick={() => (!editing ? onOpen(region) : null)}>
@@ -102,55 +87,41 @@ const RegionLabel: React.FC<IRegionLabelProps> = ({
               <button
                 onClick={() => onDelete(region)}
                 tabIndex={-1}
-                style={{ width: 22, height: 22 }}
               >
                 Delete
               </button>
             </div>
-            {/* {(allowedClasses || []).length > 0 && (
+            {(allowedClasses || []).length > 0 && (
               <div style={{ marginTop: 6 }}>
-                <CreatableSelect
-                  placeholder="Classification"
-                  onChange={(o, actionMeta) => {
-                    if (actionMeta.action == "create-option") {
-                      onRegionClassAdded(o.value)
-                    }
-                    return onChange({
-                      ...region,
-                      cls: o.value,
-                    })
-                  }}
-                  value={
-                    region.cls ? { label: region.cls, value: region.cls } : null
-                  }
-                  options={
-                    allowedClasses.map((c) => ({ value: c, label: c }))
-                  }
-                />
+                <select
+                  onChange={e => onChange({ ...region, cls: e.target.value })}
+                  value={region.cls}
+                >
+                  {allowedClasses.map((c, i) => (
+                    <option key={i} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
             )}
             {(allowedTags || []).length > 0 && (
               <div style={{ marginTop: 4 }}>
-                <select
-                  onChange={(newTags) =>
-                    onChange({
-                      ...region,
-                      tags: newTags.map((t: any) => t.value),
-                    })
-                  }
-                  placeholder="Tags"
-                  value={(region.tags || []).map((c) => ({
-                    label: c,
-                    value: c,
+                <Select
+                  availableOptions={(allowedTags || []).map(tag => ({
+                    id: tag,
+                    label: tag,
                   }))}
-                  isMulti
-                  options={
-                    allowedTags.map((c) => ({ value: c, label: c }))
-                  }
+                  selectedItems={(region.tags || []).map(tag => ({
+                    id: tag,
+                    label: tag,
+                  }))}
+                  setSelectedItems={tags => onChange({
+                    ...region,
+                    tags: tags.map(t => t.id),
+                  })}
                 />
               </div>
-            )} */}
-            {onClose && (
+            )}
+            { onClose && (
               <div style={{ marginTop: 4, display: "flex" }}>
                 <div style={{ flexGrow: 1 }} />
                 <button

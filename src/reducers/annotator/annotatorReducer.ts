@@ -1,4 +1,4 @@
-import { AnnotationImage, KeypointsDefinition, Region } from "components/types/annotator.types"
+import { AnnotationImage, Region } from "components/types/annotator.types"
 import { Mode, ToolEnum } from "./types/annotator.types"
 
 
@@ -7,11 +7,9 @@ export interface IAnnotatorState {
   selectedTool: ToolEnum;
   selectedCls?: string;
   mode: Mode;
-  allowedArea?: { x: number, y: number, w: number, h: number };
   regionClsList?: Array<string>;
   regionTagList?: Array<string>;
   history: Array<{ time: Date, state: IAnnotatorState, name: string }>;
-  keypointDefinitions: KeypointsDefinition;
   selectedImage?: number;
   images: Array<AnnotationImage>;
   currentImageIndex: number;
@@ -22,7 +20,7 @@ export interface IAnnotatorState {
 
 const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState => {
 
-  console.log(action);
+  //console.log(action);
 
   const getRandomId = () => Math.random().toString().split(".")[1]
 
@@ -196,6 +194,12 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
           return state
         }
 
+        var _MOUSE_MOVE_STATE = {
+          ...state,
+        }
+
+        console.log(state.mode.mode)
+
         switch (state.mode.mode) {
 
           case "RESIZE_BOX": {
@@ -221,9 +225,6 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
                 : Math.max(0, oh + (y - oy - oh))
 
             // determine if we should switch the freedom
-            var _MOUSE_MOVE_STATE = {
-              ...state,
-            }
 
             if (dw <= 0.001) {
               _MOUSE_MOVE_STATE = {
@@ -243,18 +244,6 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
                   ..._MOUSE_MOVE_STATE.mode,
                   //@ts-ignore
                   freedom: [xFree, yFree * -1]
-                }
-              }
-            }
-
-            if (regionId === "$$allowed_area") {
-              return {
-                ..._MOUSE_MOVE_STATE,
-                allowedArea: {
-                  x: dx,
-                  w: dw,
-                  y: dy,
-                  h: dh,
                 }
               }
             }
@@ -287,6 +276,41 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
                 : image
               )
             }
+          }
+
+          case "MOVE_REGION": {
+            const regionIndex = (_MOUSE_MOVE_STATE.images[_MOUSE_MOVE_STATE.selectedImage].regions || [])
+              .findIndex((r) => r.id === _MOUSE_MOVE_STATE.mode.regionId)
+
+            return {
+              ..._MOUSE_MOVE_STATE,
+              images: _MOUSE_MOVE_STATE.images.map((image, index) =>
+                index === _MOUSE_MOVE_STATE.selectedImage
+                ? { 
+                    ...image,
+                    regions: (image.regions || []).map((region, rIndex) => 
+                      rIndex === regionIndex
+                      ? region.type === "box"
+                        ? { 
+                            ...region, 
+                            x: x - region.w / 2, 
+                            y: y - region.h / 2 
+                          }
+                        : region.type === "point"
+                          ? { 
+                              ...region, 
+                              x: x, 
+                              y: y 
+                            }
+                          : region
+                      : region
+                  )
+                }
+                : image
+              )
+            }
+              // [...pathToActiveImage, "regions", regionIndex],
+              // moveRegion(activeImage.regions[regionIndex], x, y)
           }
 
           default:
@@ -412,7 +436,6 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
 
 
       case "CHANGE_REGION": {
-
         var CHANGE_REGION_STATE = {
           ...state
         }
@@ -438,7 +461,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
               ? {
                 ...image,
                 regions: (image.regions || []).map((r, i) => 
-                  r.id !== action.region.id
+                  r.id === action.region.id
                     ? action.region
                     : r
                 )

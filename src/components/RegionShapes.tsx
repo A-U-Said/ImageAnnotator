@@ -1,10 +1,8 @@
 import React, { memo } from "react"
-import { Box, KeypointsDefinition, Region } from "./types/annotator.types";
-import Matrix from "matrix";
+import { Box, Region } from "./types/annotator.types";
 
 
 interface IRegionShapesProps {
-  mat: Matrix
   imagePosition: {
     topLeft: {
         x: number;
@@ -16,15 +14,12 @@ interface IRegionShapesProps {
     };
   }
   regions: Region[],
-  keypointDefinitions: KeypointsDefinition
 }
 
 
 const RegionShapes: React.FC<IRegionShapesProps> = ({
-  mat,
   imagePosition,
-  regions = [],
-  keypointDefinitions,
+  regions = []
 }) => {
 
   const iw = imagePosition.bottomRight.x - imagePosition.topLeft.x
@@ -53,7 +48,6 @@ const RegionShapes: React.FC<IRegionShapesProps> = ({
         regions={regions}
         iw={iw}
         ih={ih}
-        keypointDefinitions={keypointDefinitions}
       />
     </svg>
   )
@@ -61,7 +55,7 @@ const RegionShapes: React.FC<IRegionShapesProps> = ({
 
 
 const WrappedRegionList = memo(
-  ({ regions, keypointDefinitions, iw, ih } : { regions: Region[], keypointDefinitions: KeypointsDefinition, iw: number, ih: number }) => {
+  ({ regions, iw, ih } : { regions: Region[], iw: number, ih: number }) => {
     return (
       <>
         { regions
@@ -74,7 +68,6 @@ const WrappedRegionList = memo(
               region={r}
               iw={iw}
               ih={ih}
-              keypointDefinitions={keypointDefinitions}
             />
           )
         })
@@ -87,7 +80,7 @@ const WrappedRegionList = memo(
 
 
 const RegionComponents = {
-  point: memo(({ region, iw, ih, keypointDefinitions } : { region: Region, iw: number, ih: number, keypointDefinitions: KeypointsDefinition }) => (
+  point: memo(({ region, iw, ih } : { region: Region, iw: number, ih: number }) => (
     <g transform={`translate(${region.x * iw} ${region.y * ih})`}>
       <path
         d={"M0 8L8 0L0 -8L-8 0Z"}
@@ -97,7 +90,7 @@ const RegionComponents = {
       />
     </g>
   )),
-  box: memo(({ region, iw, ih, keypointDefinitions } : { region: Region, iw: number, ih: number, keypointDefinitions: KeypointsDefinition }) => (
+  box: memo(({ region, iw, ih } : { region: Region, iw: number, ih: number }) => (
     <g transform={`translate(${region.x * iw} ${region.y * ih})`}>
       <rect
         strokeWidth={2}

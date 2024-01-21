@@ -39,7 +39,7 @@ interface IImageCanvasBackgroundProps {
   },
   mouseEvents: {
     onMouseMove: (e: any) => void;
-    onMouseDown: (e: any, specialEvent?: any) => void;
+    onMouseDown: (e: any) => void;
     onMouseUp: (e: any) => void;
     onWheel: (e: any) => void;
     onContextMenu: (e: any) => void;

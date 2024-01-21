@@ -30,10 +30,6 @@ interface IRegionSelectAndTransformBoxProps {
   layoutParams: any,
   mat: any,
   onBeginBoxTransform: any,
-  onBeginMovePolygonPoint: any,
-  onBeginMoveKeypoint: any,
-  onAddPolygonPoint: any,
-  showHighlightBox: any,
 }
 
 
@@ -49,30 +45,23 @@ const RegionSelectAndTransformBox: React.FC<IRegionSelectAndTransformBoxProps> =
     layoutParams,
     mat,
     onBeginBoxTransform,
-    onBeginMovePolygonPoint,
-    onBeginMoveKeypoint,
-    onAddPolygonPoint,
-    showHighlightBox,
   }) => {
 
 
     const pbox = projectRegionBox(r)
-    const { iw, ih } = layoutParams.current
     return (
         <Fragment>
           <PreventScrollToParents>
-            {showHighlightBox && (
-              <HighlightBox
-                region={r}
-                mouseEvents={mouseEvents}
-                dragWithPrimary={dragWithPrimary}
-                createWithPrimary={createWithPrimary}
-                zoomWithPrimary={zoomWithPrimary}
-                onBeginMovePoint={onBeginMovePoint}
-                onSelectRegion={onSelectRegion}
-                pbox={pbox}
-              />
-            )}
+            <HighlightBox
+              region={r}
+              mouseEvents={mouseEvents}
+              dragWithPrimary={dragWithPrimary}
+              createWithPrimary={createWithPrimary}
+              zoomWithPrimary={zoomWithPrimary}
+              onBeginMovePoint={onBeginMovePoint}
+              onSelectRegion={onSelectRegion}
+              pbox={pbox}
+            />
             {r.type === "box" &&
               !dragWithPrimary &&
               !zoomWithPrimary &&

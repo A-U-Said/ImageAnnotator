@@ -12,13 +12,14 @@ import useRafState from "hooks/useRafState"
 import useEventCallback from "hooks/useEventCallback"
 
 import Matrix from "../matrix"
-import { KeypointsDefinition, Region } from "./types/annotator.types"
+import { Region } from "./types/annotator.types"
 import useProjectRegionBox from "hooks/useProjectRegionBox"
 import ImageCanvasBackground from "./ImageCanvasBackground"
 import PreventScrollToParents from "./PreventScrollToParents"
 import RegionShapes from "./RegionShapes"
 import RegionLabel from "./RegionLabel"
 import RegionSelectAndTransformBoxes from "./RegionSelectAndTransformBoxes"
+import { LayoutParams } from "./types/imageCanvas.types"
 
 
 const Canvas = styled.canvas`
@@ -51,108 +52,82 @@ const AnnotationContainer = styled.div`
 `
 
 
-const getDefaultMat = (allowedArea: { x: number, y: number, w: number, h: number } = null, 
-  { iw, ih } : { iw: number, ih: number } = { iw: null, ih: null}) => {
-    let mat = Matrix.from(1, 0, 0, 1, -10, -10)
-    if (allowedArea && iw) {
-      mat = mat
-        .translate(allowedArea.x * iw, allowedArea.y * ih)
-        .scaleU(allowedArea.w + 0.05)
-    }
-    return mat
-  }
+const getDefaultMat = () => {
+  let mat = Matrix.from(1, 0, 0, 1, -10, -10);
+  return mat;
+}
 
 interface IImageCanvasProps {
-  regions: Array<Region>
-  imageSrc?: string,
-  keypointDefinitions?: KeypointsDefinition,
-  onMouseMove?: ({ x, y } : { x: number, y: number }) => any,
-  onMouseDown?: ({ x, y } : { x: number, y: number }) => any,
-  onMouseUp?: ({ x, y } : { x: number, y: number }) => any,
-  dragWithPrimary?: boolean,
-  zoomWithPrimary?: boolean,
-  createWithPrimary?: boolean,
-  regionClsList?: Array<string>,
-  regionTagList?: Array<string>,
-  showHighlightBox?: boolean,
-  allowedArea?: { x: number, y: number, w: number, h: number },
+  regions: Array<Region>;
+  imageSrc?: string;
+  onMouseMove?: ({ x, y } : { x: number, y: number }) => void;
+  onMouseDown?: ({ x, y } : { x: number, y: number }) => void;
+  onMouseUp?: ({ x, y } : { x: number, y: number }) => void;
+  dragWithPrimary?: boolean;
+  zoomWithPrimary?: boolean;
+  createWithPrimary?: boolean;
+  regionClsList?: Array<string>;
+  regionTagList?: Array<string>;
   onImageOrVideoLoaded: (
     { naturalWidth, naturalHeight, duration } :
     { naturalWidth: number, naturalHeight: number, duration?: number }
-  ) => any,
-  onChangeRegion: (Region: any) => any,
-  onBeginBoxTransform: (box: Region, point: [number, number]) => any,
-  onBeginMovePolygonPoint: (polygon: Region, index: number) => any,
-  onBeginMoveKeypoint: (keypoints: Region, index: number) => any,
-  onAddPolygonPoint: (polygon: Region, point: [number, number], index: number) => any,
-  onSelectRegion: (region: Region) => any,
-  onBeginMovePoint: (point: Region) => any,
-  onDeleteRegion: (region: Region) => any,
-  zoomOnAllowedArea?: boolean,
+  ) => void;
+  onChangeRegion: (Region: Region) => void;
+  onBeginBoxTransform: (box: Region, point: [number, number]) => void;
+  onSelectRegion: (region: Region) => void;
+  onBeginMovePoint: (point: Region) => void;
+  onDeleteRegion: (region: Region) => void;
 }
 
 
 const ImageCanvas: React.FC<IImageCanvasProps> = ({
   regions,
   imageSrc,
-  keypointDefinitions,
-  onMouseMove = (p) => null,
-  onMouseDown = (p) => null,
-  onMouseUp = (p) => null,
+  onMouseMove = () => null,
+  onMouseDown = () => null,
+  onMouseUp = () => null,
   dragWithPrimary = false,
   zoomWithPrimary = false,
   createWithPrimary = false,
   regionClsList,
   regionTagList,
-  showHighlightBox = true,
-  allowedArea,
   onImageOrVideoLoaded,
   onChangeRegion,
   onBeginBoxTransform,
-  onBeginMovePolygonPoint,
-  onAddPolygonPoint,
-  onBeginMoveKeypoint,
   onSelectRegion,
   onBeginMovePoint,
-  onDeleteRegion,
-  zoomOnAllowedArea = true,
+  onDeleteRegion
 }) => {
 
-  const canvasEl = useRef<HTMLCanvasElement>(null)
-  const layoutParams = useRef<{
-    iw: number,
-    ih: number,
-    fitScale: number,
-    canvasWidth: number,
-    canvasHeight: number,
-  }>()
-  const [dragging, changeDragging] = useRafState(false)
-  const [zoomStart, changeZoomStart] = useRafState(null)
-  const [zoomEnd, changeZoomEnd] = useRafState(null)
-  const [mat, changeMat] = useRafState(getDefaultMat())
+  const canvasEl = useRef<HTMLCanvasElement>(null);
+  const layoutParams = useRef<LayoutParams>();
+  const [dragging, changeDragging] = useRafState(false);
+  const [zoomStart, changeZoomStart] = useRafState(null);
+  const [zoomEnd, changeZoomEnd] = useRafState(null);
+  const [mat, changeMat] = useRafState<Matrix>(getDefaultMat());
   const windowSize = useWindowSize()
 
   const { mouseEvents } = useMouse({
-    canvasEl,
-    dragging,
-    mat,
-    layoutParams,
-    changeMat,
-    zoomStart,
-    zoomEnd,
-    changeZoomStart,
-    changeZoomEnd,
-    changeDragging,
-    zoomWithPrimary,
-    dragWithPrimary,
-    onMouseMove,
-    onMouseDown,
-    onMouseUp,
+    canvasEl: canvasEl,
+    dragging: dragging,
+    mat: mat,
+    layoutParams: layoutParams,
+    changeMat: changeMat,
+    zoomStart: zoomStart,
+    zoomEnd: zoomEnd,
+    changeZoomStart: changeZoomStart,
+    changeZoomEnd: changeZoomEnd,
+    changeDragging: changeDragging,
+    zoomWithPrimary: zoomWithPrimary,
+    dragWithPrimary: dragWithPrimary,
+    onMouseMove: onMouseMove,
+    onMouseDown: onMouseDown,
+    onMouseUp: onMouseUp,
   })
 
   useLayoutEffect(() => {
     changeMat(mat.clone())
-  }, [windowSize])
+  }, [changeMat, mat, windowSize])
 
   const projectRegionBox = useProjectRegionBox({ layoutParams, mat })
 
@@ -196,10 +171,7 @@ const ImageCanvas: React.FC<IImageCanvasProps> = ({
   useEffect(() => {
     if (!imageLoaded) return
     changeMat(
-      getDefaultMat(
-        zoomOnAllowedArea ? allowedArea : null,
-        layoutParams.current
-      )
+      getDefaultMat()
     )
     // eslint-disable-next-line
   }, [imageLoaded])
@@ -214,42 +186,6 @@ const ImageCanvas: React.FC<IImageCanvasProps> = ({
     context.save()
     //@ts-ignore
     context.transform(...mat.clone().inverse().toArray())
-
-    const { iw, ih } = layoutParams.current
-
-    if (allowedArea) {
-      // Pattern to indicate the NOT allowed areas
-      const { x, y, w, h } = allowedArea
-      context.save()
-      context.globalAlpha = 1
-      const outer: [number, number][] = [
-        [0, 0],
-        [iw, 0],
-        [iw, ih],
-        [0, ih],
-      ]
-      const inner: [number, number][] = [
-        [x * iw, y * ih],
-        [x * iw + w * iw, y * ih],
-        [x * iw + w * iw, y * ih + h * ih],
-        [x * iw, y * ih + h * ih],
-      ]
-      context.moveTo(...outer[0])
-      outer.forEach((p) => context.lineTo(...p))
-      context.lineTo(...outer[0])
-      context.closePath()
-
-      inner.reverse()
-      context.moveTo(...inner[0])
-      inner.forEach((p) => context.lineTo(...p))
-      context.lineTo(...inner[0])
-
-      context.fillStyle = "#f00"
-      context.fill()
-
-      context.restore()
-    }
-
     context.restore()
   })
 
@@ -312,24 +248,7 @@ const ImageCanvas: React.FC<IImageCanvasProps> = ({
         { imageLoaded && !dragging && (
           <RegionSelectAndTransformBoxes
             key="regionSelectAndTransformBoxes"
-            regions={
-              !allowedArea
-                ? regions
-                : [
-                    {
-                      type: "box",
-                      id: "$$allowed_area",
-                      cls: "allowed_area",
-                      highlighted: true,
-                      x: allowedArea.x,
-                      y: allowedArea.y,
-                      w: allowedArea.w,
-                      h: allowedArea.h,
-                      visible: true,
-                      color: "#ff0",
-                    },
-                  ]
-            }
+            regions={regions}
             mouseEvents={mouseEvents}
             projectRegionBox={projectRegionBox}
             dragWithPrimary={dragWithPrimary}
@@ -340,10 +259,6 @@ const ImageCanvas: React.FC<IImageCanvasProps> = ({
             layoutParams={layoutParams}
             mat={mat}
             onBeginBoxTransform={onBeginBoxTransform}
-            onBeginMovePolygonPoint={onBeginMovePolygonPoint}
-            onBeginMoveKeypoint={onBeginMoveKeypoint}
-            onAddPolygonPoint={onAddPolygonPoint}
-            showHighlightBox={showHighlightBox}
           />
         )}
 
@@ -356,21 +271,22 @@ const ImageCanvas: React.FC<IImageCanvasProps> = ({
               onDelete={onDeleteRegion}
               editing
               region={highlightedRegion}
-              allowComments={false}
             />
           </AnnotationContainer>
         )}
 
         <PreventScrollToParents
+          onMouseMove={mouseEvents.onMouseMove}
+          onMouseDown={mouseEvents.onMouseDown}
+          onMouseUp={mouseEvents.onMouseUp}
+          onWheel={mouseEvents.onWheel}
+          onContextMenu={mouseEvents.onContextMenu}
           style={{ width: "100%", height: "100%" }}
-          {...mouseEvents}
         >
           <Canvas
             ref={canvasEl}
           />
           <RegionShapes
-            mat={mat}
-            keypointDefinitions={keypointDefinitions}
             imagePosition={imagePosition}
             regions={regions}
           />

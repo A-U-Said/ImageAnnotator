@@ -60,14 +60,19 @@ interface IWorkspaceProps {
 }
 
 
-const Workspace: React.FC<IWorkspaceProps> = ({ children, tools = [], onItemClick }) => {
+const Workspace: React.FC<IWorkspaceProps> = ({ children, tools, onItemClick }) => {
 
-  const [_tools, _setTools] = useState<SidebarItem[]>([]);
+  const [_tools, _setTools] = useState<SidebarItem[]>([
+    { name: "select" },
+    { name: "pan" },
+    { name: "zoom" },
+    { name: "create-point" },
+    { name: "create-box" }
+  ]);
 
   useEffect(() => {
-    _setTools(tools);
+    tools && _setTools(tools);
   }, [tools])
-
 
   const onClickIconSidebarItem = (item: SidebarItem) => {
     onItemClick?.(item);
@@ -75,16 +80,13 @@ const Workspace: React.FC<IWorkspaceProps> = ({ children, tools = [], onItemClic
 
   return (
     <Container>
-
       <SidebarContent
         tools={_tools}
         onClickItem={onClickIconSidebarItem}
       />
-
       <WorkArea>
         { children }
       </WorkArea>
-
     </Container>
   )
 }

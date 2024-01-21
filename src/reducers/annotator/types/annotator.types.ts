@@ -1,4 +1,3 @@
-import { KeypointDefinition } from "components/types/annotator.types"
 
 export type ToolEnum =
   | "select"
@@ -23,9 +22,6 @@ export type ToolEnum =
   | { mode: "MOVE_KEYPOINT", regionId: string, keypointId: string }
   | {
       mode: "RESIZE_KEYPOINTS",
-      landmarks: {
-        [id: string]: KeypointDefinition,
-      },
       centerX: number,
       centerY: number,
       regionId: string,

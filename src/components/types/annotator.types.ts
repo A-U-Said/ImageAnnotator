@@ -34,20 +34,3 @@ export type AnnotationImage = {
   realSize?: { w: number, h: number, unitName: string },
   frameTime?: number,
 }
-
-export type KeypointId = string
-
-export type KeypointDefinition = {
-  label: string,
-  color: string,
-  defaultPosition: [number, number],
-}
-
-export type KeypointsDefinition = {
-  [id: string]: {
-    connections: Array<[KeypointId, KeypointId]>,
-    landmarks: {
-      [kpid: KeypointId]: KeypointDefinition,
-    },
-  },
-}
