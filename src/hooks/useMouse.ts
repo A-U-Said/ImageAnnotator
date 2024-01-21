@@ -21,6 +21,14 @@ type props = {
   dragging: boolean;
 }
 
+export type MouseEvents = {
+  onMouseMove: (e: React.MouseEvent) => void;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onMouseUp: (e: React.MouseEvent) => void;
+  onWheel: (e: React.WheelEvent) => void;
+  onContextMenu: (e: React.MouseEvent) => void;
+}
+
 
 const getDefaultMat = () => Matrix.from(1, 0, 0, 1, -10, -10);
 
@@ -41,7 +49,10 @@ const useMouse = ({
   onMouseUp,
   onMouseDown,
   dragging,
-}: props) => {
+}: props): {
+  mouseEvents: MouseEvents, 
+  mousePosition: React.MutableRefObject<{ x: number; y: number; }>
+} => {
 
   const mousePosition = useRef({ x: 0, y: 0 });
   const prevMousePosition = useRef({ x: 0, y: 0 });

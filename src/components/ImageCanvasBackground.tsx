@@ -1,8 +1,9 @@
 // @flow weak
 
-import React, { useRef, useMemo, useState } from "react"
+import React, { useRef, useMemo, useState, SyntheticEvent } from "react"
 import styled from "styled-components"
 import useEventCallback from "hooks/useEventCallback"
+import { MouseEvents } from "hooks/useMouse"
 
 
 const StyledImage = styled.img`
@@ -37,15 +38,9 @@ interface IImageCanvasBackgroundProps {
         y: number;
     };
   },
-  mouseEvents: {
-    onMouseMove: (e: any) => void;
-    onMouseDown: (e: any) => void;
-    onMouseUp: (e: any) => void;
-    onWheel: (e: any) => void;
-    onContextMenu: (e: any) => void;
-  },
+  mouseEvents: MouseEvents,
   imageSrc: string;
-  onLoad: any,
+  onLoad: (params: { naturalWidth: number, naturalHeight: number, imageElm: EventTarget & HTMLImageElement }) => void,
   useCrossOrigin?: boolean;
 }
 
@@ -61,16 +56,16 @@ const ImageCanvasBackground: React.FC<IImageCanvasBackgroundProps> = ({
   const imageRef = useRef()
   const [error, setError] = useState<string>()
 
-  const onImageLoaded = useEventCallback((event) => {
-    const imageElm = event.currentTarget
+  const onImageLoaded = useEventCallback((event: SyntheticEvent<HTMLImageElement>) => {
+    const imageElm = event.currentTarget;
     if (onLoad)
       onLoad({
         naturalWidth: imageElm.naturalWidth,
         naturalHeight: imageElm.naturalHeight,
-        imageElm,
+        imageElm: imageElm,
       })
   })
-  const onImageError = useEventCallback((event) => {
+  const onImageError = useEventCallback((event: SyntheticEvent<HTMLImageElement>) => {
     setError(
       `Could not load image\n\nMake sure your image works by visiting ${
         imageSrc

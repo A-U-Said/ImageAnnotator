@@ -72,7 +72,7 @@ interface IImageCanvasProps {
     { naturalWidth, naturalHeight, duration } :
     { naturalWidth: number, naturalHeight: number, duration?: number }
   ) => void;
-  onChangeRegion: (Region: Region) => void;
+  onChangeRegion: (region: Region) => void;
   onBeginBoxTransform: (box: Region, point: [number, number]) => void;
   onSelectRegion: (region: Region) => void;
   onBeginMovePoint: (point: Region) => void;

@@ -1,5 +1,6 @@
-import { AnnotationImage, Region } from "components/types/annotator.types"
+import { AnnotationImage, Box, Region } from "components/types/annotator.types"
 import { Mode, ToolEnum } from "./types/annotator.types"
+import { AnnotatorActionType } from "./annotatorActions";
 
 
 export interface IAnnotatorState {
@@ -13,14 +14,13 @@ export interface IAnnotatorState {
   selectedImage?: number;
   images: Array<AnnotationImage>;
   currentImageIndex: number;
-  lastAction?: any;
   lastMouseMoveCall?: number;
 }
 
 
-const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState => {
+const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) : IAnnotatorState => {
 
-  //console.log(action);
+  console.log(action);
 
   const getRandomId = () => Math.random().toString().split(".")[1]
 
@@ -32,15 +32,15 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
         selectedTool: action.payload.selectedTool
       }
 
-    case "IMAGE_OR_VIDEO_LOADED":
+    case "IMAGE_LOADED":
       return {
         ...state,
         images: state.images.map((image, index) =>
           index === state.selectedImage
           ? { ...image, 
             pixelSize: {
-              w: action.metadata.naturalWidth,
-              h: action.metadata.naturalHeight
+              w: action.payload.metadata.naturalWidth,
+              h: action.payload.metadata.naturalHeight
             }
           }
           : image
@@ -52,12 +52,12 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
           ...state,
           mode: { 
             mode: "MOVE_REGION",
-            regionId: action.point.id
+            regionId: action.payload.point.id
           }
         }
 
       case "BEGIN_BOX_TRANSFORM": {
-        const { box, directions } = action
+        const { box, directions } = action.payload
 
         var BEGIN_BOX_TRANSFORM_STATE = {
           ...state,
@@ -85,22 +85,21 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
             }
           }
         } else {
+          var _box = box as Box;
           return {
             ...BEGIN_BOX_TRANSFORM_STATE,
             mode: {
               mode: "RESIZE_BOX",
-              regionId: box.id,
+              regionId: _box.id,
               freedom: directions,
-              original: { x: box.x, y: box.y, w: box.w, h: box.h },
+              original: { x: _box.x, y: _box.y, w: _box.w, h: _box.h },
             }
           }
         }
-
-        return BEGIN_BOX_TRANSFORM_STATE;
       }
 
       case "MOUSE_DOWN": {
-        const { x, y } = action
+        const { x, y } = action.payload
 
         if (!state.images[state.selectedImage]) {
           return state
@@ -184,7 +183,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
 
 
       case "MOUSE_MOVE": {
-        const { x, y } = action
+        const { x, y } = action.payload
   
         if (!state.mode) {
           return state
@@ -197,8 +196,6 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
         var _MOUSE_MOVE_STATE = {
           ...state,
         }
-
-        console.log(state.mode.mode)
 
         switch (state.mode.mode) {
 
@@ -320,7 +317,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
 
 
       case "MOUSE_UP": {
-        const { x, y } = action
+        const { x, y } = action.payload
 
         if (!state.mode) {
           return state
@@ -427,7 +424,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
             index === state.selectedImage
               ? {
                 ...image,
-                regions: (image.regions || []).filter((r) => r.id !== action.region.id)
+                regions: (image.regions || []).filter((r) => r.id !== action.payload.region.id)
               }
               : image
           ),
@@ -441,14 +438,14 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
         }
         const activeImage = state.images[state.selectedImage]
         const regionIndex = (activeImage.regions || []).findIndex(
-          (r) => r.id === action.region.id
+          (r) => r.id === action.payload.region.id
         )
         const oldRegion = state.images[state.selectedImage].regions[regionIndex]
-        if (oldRegion.cls !== action.region.cls) {
+        if (oldRegion.cls !== action.payload.region.cls) {
           CHANGE_REGION_STATE = {
             ...CHANGE_REGION_STATE,
-            selectedCls: CHANGE_REGION_STATE.regionClsList.indexOf(action.region.cls) !== 1
-              ? action.region.cls
+            selectedCls: CHANGE_REGION_STATE.regionClsList.indexOf(action.payload.region.cls) !== 1
+              ? action.payload.region.cls
               : CHANGE_REGION_STATE.selectedCls
           }
         }
@@ -461,8 +458,8 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
               ? {
                 ...image,
                 regions: (image.regions || []).map((r, i) => 
-                  r.id === action.region.id
-                    ? action.region
+                  r.id === action.payload.region.id
+                    ? action.payload.region
                     : r
                 )
               }
@@ -473,7 +470,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
 
 
       case "SELECT_REGION": {
-        const { region } = action
+        const { region } = action.payload
 
         return {
           ...state,
@@ -498,7 +495,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: any) : IAnnotatorState
       case "SELECT_IMAGE": {
         return {
           ...state,
-          selectedImage: action.imageIndex
+          selectedImage: action.payload.imageIndex
         }
       }
 

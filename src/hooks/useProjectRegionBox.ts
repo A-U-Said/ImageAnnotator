@@ -1,10 +1,12 @@
 import useEventCallback from "./useEventCallback"
 import { getEnclosingBox } from "regionTools"
 import Matrix from "matrix"
+import { LayoutParams } from "components/types/imageCanvas.types"
+import { Region } from "components/types/annotator.types"
 
-const useProjectRegionBox = ({ layoutParams, mat } : { layoutParams: any, mat: Matrix }) => {
+const useProjectRegionBox = ({ layoutParams, mat } : { layoutParams: React.MutableRefObject<LayoutParams>, mat: Matrix }) => {
 
-  return useEventCallback((r) => {
+  return useEventCallback((r: Region) => {
     const { iw, ih } = layoutParams.current
     const bbox = getEnclosingBox(r)
     const margin = r.type === "point" ? 15 : 2

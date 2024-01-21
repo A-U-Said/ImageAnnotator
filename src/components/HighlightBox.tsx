@@ -2,6 +2,8 @@
 
 import React from "react"
 import styled, { keyframes } from "styled-components"
+import { Region } from "./types/annotator.types";
+import { MouseEvents } from "hooks/useMouse";
 
 
 const borderDance = keyframes`
@@ -45,7 +47,19 @@ const HighlightBoxWrapper = styled.svg<{ higgyliggy: boolean }>`
 `
 
 
-export const HighlightBox = ({
+interface IHighlightBoxProps {
+  mouseEvents: MouseEvents;
+  dragWithPrimary: boolean;
+  zoomWithPrimary: boolean;
+  createWithPrimary: boolean;
+  onBeginMovePoint: (point: Region) => void;
+  onSelectRegion: (region: Region) => void;
+  region: Region;
+  pbox: { x: number, y: number, w: number, h: number };
+}
+
+
+const HighlightBox: React.FC<IHighlightBoxProps> = ({
   mouseEvents,
   dragWithPrimary,
   zoomWithPrimary,
@@ -54,20 +68,14 @@ export const HighlightBox = ({
   onSelectRegion,
   region: r,
   pbox,
-}: {
-  mouseEvents: any,
-  dragWithPrimary: boolean,
-  zoomWithPrimary: boolean,
-  createWithPrimary: boolean,
-  onBeginMovePoint: Function,
-  onSelectRegion: Function,
-  region: any,
-  pbox: { x: number, y: number, w: number, h: number },
 }) => {
 
-  if (!pbox.w || pbox.w === Infinity) return null
-  if (!pbox.h || pbox.h === Infinity) return null
-  if (r.unfinished) return null
+  if (!pbox.w || pbox.w === Infinity) {
+    return null;
+  }
+  if (!pbox.h || pbox.h === Infinity) {
+    return null;
+  }
 
   const styleCoords =
     r.type === "point"
@@ -89,7 +97,7 @@ export const HighlightBox = ({
       ? `M5,5 L${styleCoords.width - 5} 5L${styleCoords.width - 5} ${
           styleCoords.height - 5
         }L5 ${styleCoords.height - 5}Z`
-      : `M5,5 L${pbox.w + 5},5 L${pbox.w + 5},${pbox.h + 5} L5,${pbox.h + 5} Z`
+      : `M5,5 L${pbox.w + 5},5 L${pbox.w + 5},${pbox.h + 5} L5,${pbox.h + 5} Z`;
 
   return (
       <HighlightBoxWrapper
@@ -99,7 +107,6 @@ export const HighlightBox = ({
         onWheel={mouseEvents.onWheel}
         onContextMenu={mouseEvents.onContextMenu}
         onMouseMove={mouseEvents.onMouseMove}
-        onMouseLeave={mouseEvents.onMouseLeave}
         {...(!zoomWithPrimary && !dragWithPrimary
           ? {
               onMouseDown: (e) => {

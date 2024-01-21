@@ -3,6 +3,9 @@ import HighlightBox from "./HighlightBox"
 import PreventScrollToParents from "./PreventScrollToParents"
 import styled from "styled-components"
 import { Region } from "./types/annotator.types"
+import { MouseEvents } from "hooks/useMouse"
+import Matrix from "matrix"
+import { LayoutParams } from "./types/imageCanvas.types"
 
 const TransformGrabber = styled.div`
   width: 8px;
@@ -19,17 +22,22 @@ const boxCursorMap = [
 ]
 
 interface IRegionSelectAndTransformBoxProps {
-  region: Region,
-  mouseEvents: any,
-  projectRegionBox: any,
-  dragWithPrimary: any,
-  createWithPrimary: any,
-  zoomWithPrimary: any,
-  onBeginMovePoint: any,
-  onSelectRegion: any,
-  layoutParams: any,
-  mat: any,
-  onBeginBoxTransform: any,
+  region: Region;
+  mouseEvents: MouseEvents;
+  projectRegionBox: (r: Region) => {
+    w: number;
+    h: number;
+    x: number;
+    y: number;
+  }
+  dragWithPrimary: boolean;
+  createWithPrimary: boolean;
+  zoomWithPrimary: boolean;
+  onBeginMovePoint: (point: Region) => void;
+  onSelectRegion: (region: Region) => void;
+  layoutParams: React.MutableRefObject<LayoutParams>;
+  mat: Matrix;
+  onBeginBoxTransform: (box: Region, point: [number, number]) => void;
 }
 
 
@@ -85,7 +93,6 @@ const RegionSelectAndTransformBox: React.FC<IRegionSelectAndTransformBoxProps> =
                   onWheel={mouseEvents.onWheel}
                   onContextMenu={mouseEvents.onContextMenu}
                   onMouseMove={mouseEvents.onMouseMove}
-                  onMouseLeave={mouseEvents.onMouseLeave}
                   onMouseDown={(e) => {
                     if (e.button === 0)
                       return onBeginBoxTransform(r, [px * 2 - 1, py * 2 - 1])
@@ -105,18 +112,22 @@ const RegionSelectAndTransformBox: React.FC<IRegionSelectAndTransformBoxProps> =
 }
 
 interface IRegionSelectAndTransformBoxesProps extends IRegionSelectAndTransformBoxProps {
-  regions: Region[];
+  regions: Array<Region>;
 }
 type RegionSelectAndTransformBoxesProps = Omit<IRegionSelectAndTransformBoxesProps, "region">;
 
-const RegionSelectAndTransformBoxes = memo(
-  (props: any) => {
-    return props.regions
-      .filter((r: any) => r.visible || r.visible === undefined)
-      .filter((r: any) => !r.locked)
-      .map((r: any, i: any) => {
-        return <RegionSelectAndTransformBox key={r.id} {...props} region={r} />
-      })
+const RegionSelectAndTransformBoxes = memo<RegionSelectAndTransformBoxesProps>(
+  (props) => {
+    return (
+      <>
+        { props.regions
+        .filter((r) => r.visible || r.visible === undefined)
+        .filter((r) => !r.locked)
+        .map((r, i) => {
+          return <RegionSelectAndTransformBox key={r.id} {...props} region={r} />
+        })}
+      </>
+    )
   },
   (n, p) => n.regions === p.regions && n.mat === p.mat
 )

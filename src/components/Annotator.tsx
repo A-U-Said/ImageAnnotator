@@ -1,11 +1,13 @@
 import React, { useEffect, useReducer, useState } from "react"
 import { AnnotationImage } from "components/types/annotator.types";
 import useEventCallback from "hooks/useEventCallback";
-import AnnotatorReducer from "reducers/annotator/annotatorReducer";
+import AnnotatorReducer, { IAnnotatorState } from "reducers/annotator/annotatorReducer";
 import { ToolEnum } from "reducers/annotator/types/annotator.types";
 import Workspace from "./Workspace";
 import { SidebarItem } from "./types/workspace.types";
 import ImageCanvas from "./ImageCanvas";
+import { AnnotatorActionType } from "reducers/annotator/annotatorActions";
+import annotatorActions from "reducers/annotator/annotatorActions";
 
 
 interface IAnnotatorProps {
@@ -14,7 +16,7 @@ interface IAnnotatorProps {
   selectedTool?: ToolEnum;
   regionTagList?: Array<string>;
   regionClsList?: Array<string>;
-  onExit?: (MainLayoutState: any) => void;
+  onExit?: (MainLayoutState: IAnnotatorState) => void;
 }
 
 
@@ -51,14 +53,11 @@ const Annotator: React.FC<IAnnotatorProps> = ({
     if (!selectedImage || !state?.images) {
       return;
     }
-    dispatchToReducer({
-      type: "SELECT_IMAGE",
-      imageIndex: selectedImage,
-      image: state.images[selectedImage],
-    });
+    dispatchToReducer(annotatorActions.selectImageAction(selectedImage));
   }, [selectedImage, state?.images]);
 
-  const dispatch = useEventCallback((action) => {
+
+  const dispatch = useEventCallback((action: AnnotatorActionType) => {
     dispatchToReducer(action);
   })
 
@@ -66,17 +65,8 @@ const Annotator: React.FC<IAnnotatorProps> = ({
     return onExit?.(state);
   }
 
-  const action = (type: string, ...params: Array<string>) => {
-    const fn = (...args: any) =>
-      params.length > 0
-        ? dispatch(
-            ({
-              type,
-              ...params.reduce((acc: any, p, i) => ((acc[p as keyof typeof acc] = args[i]), acc), {}),
-            })
-          )
-        : dispatch({ type, ...args[0] });
-    return fn;
+  const action = <T extends (...args: Parameters<T>) => AnnotatorActionType>(callback: T) => {
+    return (...args: Parameters<T>) => dispatch(callback(...args));
   }
 
   const onClickIconSidebarItem = useEventCallback((item: SidebarItem) => {
@@ -106,20 +96,20 @@ const Annotator: React.FC<IAnnotatorProps> = ({
           <ImageCanvas
             regions={activeImage.regions || []}
             imageSrc={activeImage.src}
-            onMouseMove={action("MOUSE_MOVE")}
-            onMouseDown={action("MOUSE_DOWN")}
-            onMouseUp={action("MOUSE_UP")}
+            onMouseMove={action(annotatorActions.mouseMoveAction)}
+            onMouseDown={action(annotatorActions.mouseDownAction)}
+            onMouseUp={action(annotatorActions.mouseUpAction)}
             dragWithPrimary={state.selectedTool === "pan"}
             zoomWithPrimary={state.selectedTool === "zoom"}
             createWithPrimary={state.selectedTool.includes("create")}
             regionClsList={state.regionClsList}
             regionTagList={state.regionTagList}
-            onImageOrVideoLoaded={action("IMAGE_OR_VIDEO_LOADED", "metadata")}
-            onChangeRegion={action("CHANGE_REGION", "region")}
-            onBeginBoxTransform={action("BEGIN_BOX_TRANSFORM", "box", "directions")}
-            onSelectRegion={action("SELECT_REGION", "region")}
-            onBeginMovePoint={action("BEGIN_MOVE_POINT", "point")}
-            onDeleteRegion={action("DELETE_REGION", "region")}
+            onImageOrVideoLoaded={action(annotatorActions.imageLoadedAction)}
+            onChangeRegion={action(annotatorActions.changeRegionAction)}
+            onBeginBoxTransform={action(annotatorActions.beginBoxTransformationAction)}
+            onSelectRegion={action(annotatorActions.selectRegionAction)}
+            onBeginMovePoint={action(annotatorActions.beginMovePointAction)}
+            onDeleteRegion={action(annotatorActions.deleteRegionAction)}
           />
         )}
         </>

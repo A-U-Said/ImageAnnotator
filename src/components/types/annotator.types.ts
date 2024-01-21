@@ -1,5 +1,5 @@
 export type BaseRegion = {
-  id: string | number,
+  id: string,
   cls?: string,
   locked?: boolean,
   visible?: boolean,
