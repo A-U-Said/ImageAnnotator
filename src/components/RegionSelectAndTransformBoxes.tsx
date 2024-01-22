@@ -5,13 +5,12 @@ import styled from "styled-components"
 import { Region } from "./types/annotator.types"
 import { MouseEvents } from "hooks/useMouse"
 import Matrix from "matrix"
-import { LayoutParams } from "./types/imageCanvas.types"
 
-const TransformGrabber = styled.div`
+const TransformGrabber = styled.div<{ regioncolor: string}>`
   width: 8px;
   height: 8px;
   z-index: 2;
-  border: 2px solid red;
+  border: 2px solid ${props => props.regioncolor || "black"};
   position: absolute;
 `
 
@@ -35,7 +34,6 @@ interface IRegionSelectAndTransformBoxProps {
   zoomWithPrimary: boolean;
   onBeginMovePoint: (point: Region) => void;
   onSelectRegion: (region: Region) => void;
-  layoutParams: React.MutableRefObject<LayoutParams>;
   mat: Matrix;
   onBeginBoxTransform: (box: Region, point: [number, number]) => void;
 }
@@ -50,11 +48,9 @@ const RegionSelectAndTransformBox: React.FC<IRegionSelectAndTransformBoxProps> =
     zoomWithPrimary,
     onBeginMovePoint,
     onSelectRegion,
-    layoutParams,
     mat,
     onBeginBoxTransform,
   }) => {
-
 
     const pbox = projectRegionBox(r)
     return (
@@ -86,17 +82,19 @@ const RegionSelectAndTransformBox: React.FC<IRegionSelectAndTransformBoxProps> =
                 [0, 1],
                 [0, 0.5],
                 [0.5, 0.5],
-              ].map(([px, py], i) => (
+              ].map(([px, py], index) => (
                 <TransformGrabber
-                  key={i}
+                  key={index}
+                  regioncolor={r.color}
                   onMouseUp={mouseEvents.onMouseUp}
                   onWheel={mouseEvents.onWheel}
                   onContextMenu={mouseEvents.onContextMenu}
                   onMouseMove={mouseEvents.onMouseMove}
                   onMouseDown={(e) => {
-                    if (e.button === 0)
-                      return onBeginBoxTransform(r, [px * 2 - 1, py * 2 - 1])
-                    mouseEvents.onMouseDown(e)
+                    if (e.button === 0) {
+                      return onBeginBoxTransform(r, [px * 2 - 1, py * 2 - 1]);
+                    }
+                    mouseEvents.onMouseDown(e);
                   }}
                   style={{
                     left: pbox.x - 4 - 2 + pbox.w * px,
@@ -123,8 +121,8 @@ const RegionSelectAndTransformBoxes = memo<RegionSelectAndTransformBoxesProps>(
         { props.regions
         .filter((r) => r.visible || r.visible === undefined)
         .filter((r) => !r.locked)
-        .map((r, i) => {
-          return <RegionSelectAndTransformBox key={r.id} {...props} region={r} />
+        .map((r, index) => {
+          return <RegionSelectAndTransformBox key={index} {...props} region={r} />
         })}
       </>
     )

@@ -1,5 +1,6 @@
 import React, { memo } from "react"
 import { Box, Region } from "./types/annotator.types";
+import { colors } from "utils";
 
 
 interface IRegionShapesProps {
@@ -44,7 +45,6 @@ const RegionShapes: React.FC<IRegionShapesProps> = ({
       }}
     >
       <WrappedRegionList
-        key="wrapped-region-list"
         regions={regions}
         iw={iw}
         ih={ih}
@@ -60,11 +60,11 @@ const WrappedRegionList = memo(
       <>
         { regions
         .filter((r) => r.visible !== false)
-        .map((r, i) => {
+        .map((r, index) => {
           const Component = RegionComponents[r.type]
           return (
             <Component
-              key={i}
+              key={index}
               region={r}
               iw={iw}
               ih={ih}
@@ -98,8 +98,8 @@ const RegionComponents = {
         y={0}
         width={Math.max((region as Box).w * iw, 0)}
         height={Math.max((region as Box).h * ih, 0)}
-        stroke={"rgba(255,0,0,0.75)"}
-        fill={"rgba(255,0,0,0.5)"}
+        stroke={colors.ensureRgba(region.color, 0.75)}
+        fill={colors.ensureRgba(region.color, 0.25)}
       />
     </g>
   ))

@@ -1,6 +1,7 @@
 // @flow
 
 import useEventCallback from "hooks/useEventCallback"
+import { MouseEvents } from "hooks/useMouse";
 import React, { useState } from "react"
 import { RemoveScroll } from "react-remove-scroll";
 
@@ -17,22 +18,14 @@ const Container = styled.div`
 
 interface IPreventScrollToParentsProps {
   children: React.ReactNode;
-  onMouseMove?: (e: React.MouseEvent) => void;
-  onMouseDown?: (e: React.MouseEvent) => any;
-  onMouseUp?: (e: React.MouseEvent) => any;
-  onWheel?: (e: React.WheelEvent) => void;
-  onContextMenu?: (e: React.MouseEvent) => void;
+  mouseEvents?: MouseEvents;
   style?: React.CSSProperties;
 }
 
 
 const PreventScrollToParents: React.FC<IPreventScrollToParentsProps> = ({ 
   children,
-  onMouseMove,
-  onMouseDown,
-  onMouseUp,
-  onWheel,
-  onContextMenu,
+  mouseEvents,
   style
 }) => {
 
@@ -42,9 +35,7 @@ const PreventScrollToParents: React.FC<IPreventScrollToParentsProps> = ({
     if (!mouseOver) {
       changeMouseOver(true);
     }
-    if (onMouseMove) {
-      onMouseMove(e);
-    }
+    mouseEvents?.onMouseMove(e);
   })
 
   const onMouseLeave = useEventCallback((e: React.MouseEvent) => {
@@ -57,10 +48,10 @@ const PreventScrollToParents: React.FC<IPreventScrollToParentsProps> = ({
 
   return (
     <Container
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
-      onWheel={onWheel}
-      onContextMenu={onContextMenu}
+      onMouseDown={mouseEvents?.onMouseDown}
+      onMouseUp={mouseEvents?.onMouseUp}
+      onWheel={mouseEvents?.onWheel}
+      onContextMenu={mouseEvents?.onContextMenu}
       onMouseMove={_onMouseMove}
       onMouseLeave={onMouseLeave}
       style={style}

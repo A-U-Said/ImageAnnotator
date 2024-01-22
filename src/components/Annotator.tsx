@@ -16,8 +16,24 @@ interface IAnnotatorProps {
   selectedTool?: ToolEnum;
   regionTagList?: Array<string>;
   regionClsList?: Array<string>;
+  colors?: Array<string>;
   onExit?: (MainLayoutState: IAnnotatorState) => void;
 }
+
+const defaultColors = [
+  "#f44336",
+  "#2196f3",
+  "#4caf50",
+  "#ef6c00",
+  "#795548",
+  "#689f38",
+  "#e91e63",
+  "#9c27b0",
+  "#3f51b5",
+  "#009688",
+  "#cddc39",
+  "#607d8b"
+];
 
 
 const Annotator: React.FC<IAnnotatorProps> = ({
@@ -26,6 +42,7 @@ const Annotator: React.FC<IAnnotatorProps> = ({
   selectedTool = "select",
   regionTagList = [],
   regionClsList = [],
+  colors,
   onExit,
 }) => {
 
@@ -36,7 +53,7 @@ const Annotator: React.FC<IAnnotatorProps> = ({
     selectedImage,
     images,
     mode: null,
-    history: [], 
+    colors: colors || defaultColors,
     currentImageIndex: 0
   });
 
@@ -70,12 +87,7 @@ const Annotator: React.FC<IAnnotatorProps> = ({
   }
 
   const onClickIconSidebarItem = useEventCallback((item: SidebarItem) => {
-    dispatch({ 
-      type: "SELECT_TOOL", 
-      payload: {
-        selectedTool: item.name 
-      }
-    })
+    dispatch(annotatorActions.selectToolAction(item.name));
   })
 
   if (!images) {
@@ -94,17 +106,15 @@ const Annotator: React.FC<IAnnotatorProps> = ({
         <>
         { activeImage && (
           <ImageCanvas
-            regions={activeImage.regions || []}
             imageSrc={activeImage.src}
+            regions={activeImage.regions}
+            selectedTool={state.selectedTool}
+            regionClsList={state.regionClsList}
+            regionTagList={state.regionTagList}
             onMouseMove={action(annotatorActions.mouseMoveAction)}
             onMouseDown={action(annotatorActions.mouseDownAction)}
             onMouseUp={action(annotatorActions.mouseUpAction)}
-            dragWithPrimary={state.selectedTool === "pan"}
-            zoomWithPrimary={state.selectedTool === "zoom"}
-            createWithPrimary={state.selectedTool.includes("create")}
-            regionClsList={state.regionClsList}
-            regionTagList={state.regionTagList}
-            onImageOrVideoLoaded={action(annotatorActions.imageLoadedAction)}
+            onImageLoaded={action(annotatorActions.imageLoadedAction)}
             onChangeRegion={action(annotatorActions.changeRegionAction)}
             onBeginBoxTransform={action(annotatorActions.beginBoxTransformationAction)}
             onSelectRegion={action(annotatorActions.selectRegionAction)}

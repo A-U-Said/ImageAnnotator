@@ -22,7 +22,7 @@ const App = () => {
           images={[
             {
               src: "https://upload.wikimedia.org/wikipedia/commons/b/b1/VAN_CAT.png",
-              name: "hot-dogs-1",
+              name: "cat",
             }
           ]}
           onExit={(output) => {

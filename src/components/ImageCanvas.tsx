@@ -10,7 +10,6 @@ import useWindowSize from "hooks/useWindowSize"
 import useMouse from "hooks/useMouse"
 import useRafState from "hooks/useRafState"
 import useEventCallback from "hooks/useEventCallback"
-
 import Matrix from "../matrix"
 import { Region } from "./types/annotator.types"
 import useProjectRegionBox from "hooks/useProjectRegionBox"
@@ -20,7 +19,17 @@ import RegionShapes from "./RegionShapes"
 import RegionLabel from "./RegionLabel"
 import RegionSelectAndTransformBoxes from "./RegionSelectAndTransformBoxes"
 import { LayoutParams } from "./types/imageCanvas.types"
+import { ToolEnum } from "reducers/annotator/types/annotator.types"
 
+
+const ImageCanvasWrapper = styled.div<{ cursor: string }>`
+  width: 100%;
+  height: 100%;
+  maxHeight: calc(100vh - 68px);
+  position: relative;
+  overflow: hidden;
+  cursor: ${props => props.cursor};
+`
 
 const Canvas = styled.canvas`
   width: 100%;
@@ -52,23 +61,19 @@ const AnnotationContainer = styled.div`
 `
 
 
-const getDefaultMat = () => {
-  let mat = Matrix.from(1, 0, 0, 1, -10, -10);
-  return mat;
-}
+const getDefaultMat = () => Matrix.from(1, 0, 0, 1, -10, -10);
+
 
 interface IImageCanvasProps {
+  imageSrc: string;
   regions: Array<Region>;
-  imageSrc?: string;
-  onMouseMove?: ({ x, y } : { x: number, y: number }) => void;
-  onMouseDown?: ({ x, y } : { x: number, y: number }) => void;
-  onMouseUp?: ({ x, y } : { x: number, y: number }) => void;
-  dragWithPrimary?: boolean;
-  zoomWithPrimary?: boolean;
-  createWithPrimary?: boolean;
+  selectedTool: ToolEnum;
   regionClsList?: Array<string>;
   regionTagList?: Array<string>;
-  onImageOrVideoLoaded: (
+  onMouseMove: ({ x, y } : { x: number, y: number }) => void;
+  onMouseDown: ({ x, y } : { x: number, y: number }) => void;
+  onMouseUp: ({ x, y } : { x: number, y: number }) => void;
+  onImageLoaded: (
     { naturalWidth, naturalHeight, duration } :
     { naturalWidth: number, naturalHeight: number, duration?: number }
   ) => void;
@@ -81,17 +86,15 @@ interface IImageCanvasProps {
 
 
 const ImageCanvas: React.FC<IImageCanvasProps> = ({
-  regions,
+  regions = [],
   imageSrc,
-  onMouseMove = () => null,
-  onMouseDown = () => null,
-  onMouseUp = () => null,
-  dragWithPrimary = false,
-  zoomWithPrimary = false,
-  createWithPrimary = false,
+  onMouseMove,
+  onMouseDown,
+  onMouseUp,
+  selectedTool,
   regionClsList,
   regionTagList,
-  onImageOrVideoLoaded,
+  onImageLoaded,
   onChangeRegion,
   onBeginBoxTransform,
   onSelectRegion,
@@ -99,13 +102,17 @@ const ImageCanvas: React.FC<IImageCanvasProps> = ({
   onDeleteRegion
 }) => {
 
+  const dragWithPrimary = (selectedTool === "pan") || false;
+  const zoomWithPrimary = (selectedTool === "zoom") || false;
+  const createWithPrimary = (selectedTool.includes("create")) || false;
+
   const canvasEl = useRef<HTMLCanvasElement>(null);
   const layoutParams = useRef<LayoutParams>();
   const [dragging, changeDragging] = useRafState(false);
   const [zoomStart, changeZoomStart] = useRafState(null);
   const [zoomEnd, changeZoomEnd] = useRafState(null);
   const [mat, changeMat] = useRafState<Matrix>(getDefaultMat());
-  const windowSize = useWindowSize()
+  const windowSize = useWindowSize();
 
   const { mouseEvents } = useMouse({
     canvasEl: canvasEl,
@@ -123,41 +130,41 @@ const ImageCanvas: React.FC<IImageCanvasProps> = ({
     onMouseMove: onMouseMove,
     onMouseDown: onMouseDown,
     onMouseUp: onMouseUp,
-  })
+  });
 
   useLayoutEffect(() => {
-    changeMat(mat.clone())
+    changeMat(mat.clone());
   }, [changeMat, mat, windowSize])
 
-  const projectRegionBox = useProjectRegionBox({ layoutParams, mat })
+  const projectRegionBox = useProjectRegionBox({ layoutParams, mat });
 
-  const [imageDimensions, changeImageDimensions] = useState<{ naturalWidth: number, naturalHeight: number}>()
-  const imageLoaded = Boolean(imageDimensions && imageDimensions.naturalWidth)
+  const [imageDimensions, changeImageDimensions] = useState<{ naturalWidth: number, naturalHeight: number}>();
+  const imageLoaded = Boolean(imageDimensions && imageDimensions.naturalWidth);
 
   const onVideoOrImageLoaded = useEventCallback(
     ({ naturalWidth, naturalHeight, duration }) => {
-      const dims = { naturalWidth, naturalHeight, duration }
-      if (onImageOrVideoLoaded) {
-        onImageOrVideoLoaded(dims)
+      const dims = { naturalWidth, naturalHeight, duration };
+      if (onImageLoaded) {
+        onImageLoaded(dims);
       }
-      changeImageDimensions(dims)
-      setTimeout(() => changeImageDimensions(dims), 10)
+      changeImageDimensions(dims);
+      setTimeout(() => changeImageDimensions(dims), 10);
     }
   )
 
-  const canvas = canvasEl.current
+  const canvas = canvasEl.current;
   if (canvas && imageLoaded) {
-    const { clientWidth, clientHeight } = canvas
+    const { clientWidth, clientHeight } = canvas;
 
     const fitScale = Math.max(
       imageDimensions.naturalWidth / (clientWidth - 20),
       imageDimensions.naturalHeight / (clientHeight - 20)
-    )
+    );
 
     const [iw, ih] = [
       imageDimensions.naturalWidth / fitScale,
       imageDimensions.naturalHeight / fitScale,
-    ]
+    ];
 
     layoutParams.current = {
       iw,
@@ -165,145 +172,134 @@ const ImageCanvas: React.FC<IImageCanvasProps> = ({
       fitScale,
       canvasWidth: clientWidth,
       canvasHeight: clientHeight,
-    }
+    };
   }
 
   useEffect(() => {
-    if (!imageLoaded) return
-    changeMat(
-      getDefaultMat()
-    )
-    // eslint-disable-next-line
-  }, [imageLoaded])
+    if (!imageLoaded) {
+      return;
+    }
+    changeMat(getDefaultMat());
+  }, [changeMat, imageLoaded])
 
   useLayoutEffect(() => {
-    if (!imageDimensions) return
-    const { clientWidth, clientHeight } = canvas
-    canvas.width = clientWidth
-    canvas.height = clientHeight
-    const context = canvas.getContext("2d")
-
-    context.save()
-    //@ts-ignore
-    context.transform(...mat.clone().inverse().toArray())
-    context.restore()
+    if (!imageDimensions) {
+      return;
+    }
+    const { clientWidth, clientHeight } = canvas;
+    canvas.width = clientWidth;
+    canvas.height = clientHeight;
+    const context = canvas.getContext("2d");
+    context.save();
+    context.transform(...mat.clone().inverse().toArray());
+    context.restore();
   })
 
-  const { iw, ih } = layoutParams.current || {}
+  const { iw, ih } = layoutParams.current || {};
 
-  let zoomBox =
-    !zoomStart || !zoomEnd
-      ? null
-      : {
-          ...mat.clone().inverse().applyToPoint(zoomStart.x, zoomStart.y),
-          w: (zoomEnd.x - zoomStart.x) / mat.a,
-          h: (zoomEnd.y - zoomStart.y) / mat.d,
-        }
+  var zoomBox = !zoomStart || !zoomEnd
+    ? null
+    : {
+        ...mat.clone().inverse().applyToPoint(zoomStart.x, zoomStart.y),
+        w: (zoomEnd.x - zoomStart.x) / mat.a,
+        h: (zoomEnd.y - zoomStart.y) / mat.d,
+      };
+
   if (zoomBox) {
     if (zoomBox.w < 0) {
-      zoomBox.x += zoomBox.w
-      zoomBox.w *= -1
+      zoomBox.x += zoomBox.w;
+      zoomBox.w *= -1;
     }
     if (zoomBox.h < 0) {
-      zoomBox.y += zoomBox.h
-      zoomBox.h *= -1
+      zoomBox.y += zoomBox.h;
+      zoomBox.h *= -1;
     }
   }
-
 
   const imagePosition = {
     topLeft: mat.clone().inverse().applyToPoint(0, 0),
     bottomRight: mat.clone().inverse().applyToPoint(iw, ih),
-  }
+  };
 
   const highlightedRegion = useMemo(() => {
-    const highlightedRegions = regions.filter((r) => r.highlighted)
-    if (highlightedRegions.length !== 1) return null
-    return highlightedRegions[0]
+    const highlightedRegions = regions.filter((r) => r.highlighted);
+    if (highlightedRegions.length !== 1) {
+      return null;
+    }
+    return highlightedRegions[0];
   }, [regions])
 
+  const getCursor = () => {
+    if (createWithPrimary) {
+      return "crosshair";
+    }
+    else if (dragging) {
+      return "grabbing";
+    }
+    else if (dragWithPrimary) {
+      return "grab";
+    }
+    else if (zoomWithPrimary) {
+      return (mat.a < 1 ? "zoom-out" : "zoom-in");
+    }
+    else {
+      return undefined;
+    }
+  }
+
   return (
-    <>
-    <div
-        style={{
-          width: "100%",
-          height: "100%",
-          maxHeight: "calc(100vh - 68px)",
-          position: "relative",
-          overflow: "hidden",
-          cursor: createWithPrimary
-            ? "crosshair"
-            : dragging
-            ? "grabbing"
-            : dragWithPrimary
-            ? "grab"
-            : zoomWithPrimary
-            ? mat.a < 1
-              ? "zoom-out"
-              : "zoom-in"
-            : undefined,
-        }}
+    <ImageCanvasWrapper cursor={getCursor()}>
+      { imageLoaded && !dragging && (
+        <RegionSelectAndTransformBoxes
+          regions={regions}
+          mouseEvents={mouseEvents}
+          projectRegionBox={projectRegionBox}
+          dragWithPrimary={dragWithPrimary}
+          createWithPrimary={createWithPrimary}
+          zoomWithPrimary={zoomWithPrimary}
+          onBeginMovePoint={onBeginMovePoint}
+          onSelectRegion={onSelectRegion}
+          mat={mat}
+          onBeginBoxTransform={onBeginBoxTransform}
+        />
+      )}
+
+      { highlightedRegion && (
+        <AnnotationContainer>
+          <RegionLabel
+            allowedClasses={regionClsList}
+            allowedTags={regionTagList}
+            onChange={onChangeRegion}
+            onDelete={onDeleteRegion}
+            region={highlightedRegion}
+            editing
+          />
+        </AnnotationContainer>
+      )}
+
+      <PreventScrollToParents
+        mouseEvents={mouseEvents}
+        style={{ width: "100%", height: "100%" }}
       >
+        <Canvas
+          ref={canvasEl}
+        />
+        <RegionShapes
+          imagePosition={imagePosition}
+          regions={regions}
+        />
+        <ImageCanvasBackground
+          imagePosition={imagePosition}
+          mouseEvents={mouseEvents}
+          onLoad={onVideoOrImageLoaded}
+          imageSrc={imageSrc}
+        />
+      </PreventScrollToParents>
 
-        { imageLoaded && !dragging && (
-          <RegionSelectAndTransformBoxes
-            key="regionSelectAndTransformBoxes"
-            regions={regions}
-            mouseEvents={mouseEvents}
-            projectRegionBox={projectRegionBox}
-            dragWithPrimary={dragWithPrimary}
-            createWithPrimary={createWithPrimary}
-            zoomWithPrimary={zoomWithPrimary}
-            onBeginMovePoint={onBeginMovePoint}
-            onSelectRegion={onSelectRegion}
-            layoutParams={layoutParams}
-            mat={mat}
-            onBeginBoxTransform={onBeginBoxTransform}
-          />
-        )}
-
-        { highlightedRegion && (
-          <AnnotationContainer>
-            <RegionLabel
-              allowedClasses={regionClsList}
-              allowedTags={regionTagList}
-              onChange={onChangeRegion}
-              onDelete={onDeleteRegion}
-              editing
-              region={highlightedRegion}
-            />
-          </AnnotationContainer>
-        )}
-
-        <PreventScrollToParents
-          onMouseMove={mouseEvents.onMouseMove}
-          onMouseDown={mouseEvents.onMouseDown}
-          onMouseUp={mouseEvents.onMouseUp}
-          onWheel={mouseEvents.onWheel}
-          onContextMenu={mouseEvents.onContextMenu}
-          style={{ width: "100%", height: "100%" }}
-        >
-          <Canvas
-            ref={canvasEl}
-          />
-          <RegionShapes
-            imagePosition={imagePosition}
-            regions={regions}
-          />
-          <ImageCanvasBackground
-            imagePosition={imagePosition}
-            mouseEvents={mouseEvents}
-            onLoad={onVideoOrImageLoaded}
-            imageSrc={imageSrc}
-          />
-        </PreventScrollToParents>
-
-        <ZoomPercentage>
-          {((1 / mat.a) * 100).toFixed(0)}%
-        </ZoomPercentage>
-
-      </div>
-    </>
+      <ZoomPercentage>
+        {((1 / mat.a) * 100).toFixed(0)}%
+      </ZoomPercentage>
+    </ImageCanvasWrapper>
   )
 }
 

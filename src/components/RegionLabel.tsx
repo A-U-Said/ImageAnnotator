@@ -1,9 +1,9 @@
 // @flow
 
-import React, { useRef, memo } from "react"
+import React from "react"
 import { Region } from "./types/annotator.types"
 import styled from "styled-components"
-import Select from "./Selector"
+import MultiSelect from "./MultiSelect"
 
 
 const AnnotationBox = styled.div`
@@ -19,16 +19,28 @@ const AnnotationBox = styled.div`
   font-weight: 600;
 `
 
+const TagChip = styled.div<{chipColor?: string}>`
+  display: flex;
+  background-color: ${props => props.chipColor || "#888"};
+  color: #fff;
+  padding: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-shadow: 0px 0px 5px rgba(0,0,0,0.4);
+`
+
 
 interface IRegionLabelProps {
-  region: Region,
-  editing?: boolean,
-  allowedClasses?: Array<string>,
-  allowedTags?: Array<string>,
-  onDelete: (region: Region) => void,
-  onChange: (region: Region) => void,
-  onClose?: (region: Region) => void,
-  onOpen?: (region: Region) => void,
+  region: Region;
+  editing?: boolean;
+  allowedClasses?: Array<string>;
+  allowedTags?: Array<string>;
+  onDelete: (region: Region) => void;
+  onChange: (region: Region) => void;
+  onClose?: (region: Region) => void;
+  onOpen?: (region: Region) => void;
 }
 
 const RegionLabel: React.FC<IRegionLabelProps> = ({
@@ -47,19 +59,16 @@ const RegionLabel: React.FC<IRegionLabelProps> = ({
         {!editing ? (
           <div>
             {region.cls && (
-              <div className="name">
-                <div
-                  className="circle"
-                  style={{ backgroundColor: region.color }}
-                />
+              <div>
+                <div style={{ backgroundColor: region.color }}/>
                 {region.cls}
               </div>
             )}
             {region.tags && (
-              <div className="tags">
-                {region.tags.map((t) => (
-                  <div key={t} className="tag">
-                    {t}
+              <div>
+                {region.tags.map((tag, index) => (
+                  <div key={index}>
+                    {tag}
                   </div>
                 ))}
               </div>
@@ -68,21 +77,9 @@ const RegionLabel: React.FC<IRegionLabelProps> = ({
         ) : (
           <div style={{ width: 200 }}>
             <div style={{ display: "flex", flexDirection: "row" }}>
-              <div
-                style={{
-                  display: "flex",
-                  backgroundColor: region.color || "#888",
-                  color: "#fff",
-                  padding: 4,
-                  paddingLeft: 8,
-                  paddingRight: 8,
-                  borderRadius: 4,
-                  fontWeight: "bold",
-                  textShadow: "0px 0px 5px rgba(0,0,0,0.4)",
-                }}
-              >
+              <TagChip chipColor={region.color}>
                 {region.type}
-              </div>
+              </TagChip>
               <div style={{ flexGrow: 1 }} />
               <button
                 onClick={() => onDelete(region)}
@@ -97,15 +94,15 @@ const RegionLabel: React.FC<IRegionLabelProps> = ({
                   onChange={e => onChange({ ...region, cls: e.target.value })}
                   value={region.cls}
                 >
-                  {allowedClasses.map((c, i) => (
-                    <option key={i} value={c}>{c}</option>
+                  {allowedClasses.map((c, index) => (
+                    <option key={index} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
             )}
             {(allowedTags || []).length > 0 && (
               <div style={{ marginTop: 4 }}>
-                <Select
+                <MultiSelect
                   availableOptions={(allowedTags || []).map(tag => ({
                     id: tag,
                     label: tag,

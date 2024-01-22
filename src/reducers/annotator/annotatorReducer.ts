@@ -10,17 +10,15 @@ export interface IAnnotatorState {
   mode: Mode;
   regionClsList?: Array<string>;
   regionTagList?: Array<string>;
-  history: Array<{ time: Date, state: IAnnotatorState, name: string }>;
   selectedImage?: number;
   images: Array<AnnotationImage>;
+  colors: Array<string>,
   currentImageIndex: number;
   lastMouseMoveCall?: number;
 }
 
 
 const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) : IAnnotatorState => {
-
-  console.log(action);
 
   const getRandomId = () => Math.random().toString().split(".")[1]
 
@@ -37,7 +35,8 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
         ...state,
         images: state.images.map((image, index) =>
           index === state.selectedImage
-          ? { ...image, 
+          ? { 
+            ...image, 
             pixelSize: {
               w: action.payload.metadata.naturalWidth,
               h: action.payload.metadata.naturalHeight
@@ -111,12 +110,15 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
         }
       
         var newRegion: Region;
-        var defaultRegionColor = "rgba(255,0,0,0.75)"
+        var defaultRegionColor = state.colors[0] || "#f44336";
+        const clsIndex = (_MOUSE_DOWN_STATE.regionClsList || []).indexOf(_MOUSE_DOWN_STATE.selectedCls)
+        if (clsIndex !== -1) {
+          defaultRegionColor = _MOUSE_DOWN_STATE.colors[clsIndex % _MOUSE_DOWN_STATE.colors.length]
+        }
      
         switch (_MOUSE_DOWN_STATE.selectedTool) {
 
           case "create-point": {
-            //state = saveToHistory(state, "Create Point")
             newRegion = {
               type: "point",
               x,
@@ -131,7 +133,6 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
           }
           
           case "create-box": {
-            //state = saveToHistory(state, "Create Box")
             newRegion = {
               type: "box",
               x: x,
@@ -444,9 +445,13 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
         if (oldRegion.cls !== action.payload.region.cls) {
           CHANGE_REGION_STATE = {
             ...CHANGE_REGION_STATE,
-            selectedCls: CHANGE_REGION_STATE.regionClsList.indexOf(action.payload.region.cls) !== 1
+            selectedCls: CHANGE_REGION_STATE.regionClsList.indexOf(action.payload.region.cls) !== -1
               ? action.payload.region.cls
               : CHANGE_REGION_STATE.selectedCls
+          }
+          const clsIndex = (CHANGE_REGION_STATE.regionClsList || []).indexOf(CHANGE_REGION_STATE.selectedCls)
+          if (clsIndex !== -1) {
+            action.payload.region.color = CHANGE_REGION_STATE.colors[clsIndex % CHANGE_REGION_STATE.colors.length]
           }
         }
 

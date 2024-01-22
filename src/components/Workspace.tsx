@@ -106,9 +106,9 @@ const SidebarContent: React.FC<ISidebarContentProps> = ({
 
   return (
     <SidebarContentContainer>
-      {tools.map(tool => (
+      {tools.map((tool, index) => (
         <WorkspaceTool
-          key={tool.name}
+          key={index}
           selected={tool === selectedTool}
           onClick={() => {
             //tool?.onClick();

@@ -102,7 +102,7 @@ interface ISelectProps {
 }
 
 
-const Select: React.FC<ISelectProps> = ({
+const MultiSelect: React.FC<ISelectProps> = ({
   availableOptions,
   selectedItems,
   setSelectedItems
@@ -141,8 +141,8 @@ const Select: React.FC<ISelectProps> = ({
   return (
     <OuterContainer ref={wrapperRef}>
       <InputBar focus={focus}>
-        { selectedItems.map((item) => (
-          <ItemContainer key={item.id}>
+        { selectedItems.map((item, index) => (
+          <ItemContainer key={index}>
             <Item>{item.label}</Item>
             <ItemRemove
               onClick={() =>
@@ -158,8 +158,8 @@ const Select: React.FC<ISelectProps> = ({
       {focus && (
         <ListItemContainer>
           {availableOptions.length && (
-            availableOptions.map((opt) => (
-              <ListItem key={opt.id} onClick={() => addData(opt)}>
+            availableOptions.map((opt, index) => (
+              <ListItem key={index} onClick={() => addData(opt)}>
                 {opt.label}
               </ListItem>
             ))
@@ -170,4 +170,4 @@ const Select: React.FC<ISelectProps> = ({
   );
 }
 
-export default Select;
+export default MultiSelect;

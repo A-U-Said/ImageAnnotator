@@ -85,7 +85,6 @@ const PdfDocuments: React.FC = () => {
             <div key={index}>
               <h3>{document.title}</h3>
               <img 
-                key={index} 
                 src={document.pages[0]?.data}
                 alt={document.title}
                 onClick={() => setSelectedDocument(documents[index])}

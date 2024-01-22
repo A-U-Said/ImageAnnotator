@@ -16,15 +16,15 @@ const borderDance = keyframes`
   }
 `;
 
-const HighlightBoxWrapper = styled.svg<{ higgyliggy: boolean }>`
+const HighlightBoxWrapper = styled.svg<{ ishighlighted: boolean, regioncolor: string }>`
     z-index: 2;
     transition: opacity 500ms;
     
-    ${props => props.higgyliggy && `
+    ${props => props.ishighlighted && `
       z-index: 3;
     `}
 
-    ${props => !props.higgyliggy && `
+    ${props => !props.ishighlighted && `
       opacity: 0;
       &:hover {
         opacity: 0.6;
@@ -34,7 +34,7 @@ const HighlightBoxWrapper = styled.svg<{ higgyliggy: boolean }>`
     path {
       vector-effect: non-scaling-stroke;
       stroke-width: 2;
-      stroke: red;
+      stroke: ${props => props.regioncolor || "black"};
       fill: none;
       stroke-dasharray: 5;
       animation-name: ${borderDance};
@@ -101,8 +101,8 @@ const HighlightBox: React.FC<IHighlightBoxProps> = ({
 
   return (
       <HighlightBoxWrapper
-        key={r.id}
-        higgyliggy={r.highlighted}
+        ishighlighted={r.highlighted}
+        regioncolor={r.color}
         onMouseUp={mouseEvents.onMouseUp}
         onWheel={mouseEvents.onWheel}
         onContextMenu={mouseEvents.onContextMenu}

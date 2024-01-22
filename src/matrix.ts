@@ -395,7 +395,7 @@ class Matrix {
     return me._x();
   }
 
-  toArray() {
+  toArray() : [number, number, number, number, number, number] {
     var me = this;
     return [me.a, me.b, me.c, me.d, me.e, me.f];
   }
