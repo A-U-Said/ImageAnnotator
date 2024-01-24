@@ -1,5 +1,5 @@
 import { AnnotationImage, Box, Region } from "components/types/annotator.types"
-import { Mode, ToolEnum } from "./types/annotator.types"
+import { Mode, Mode_ResizeBox, ToolEnum } from "./types/annotator.types"
 import { AnnotatorActionType } from "./annotatorActions";
 
 
@@ -20,7 +20,7 @@ export interface IAnnotatorState {
 
 const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) : IAnnotatorState => {
 
-  const getRandomId = () => Math.random().toString().split(".")[1]
+  const getRandomId = () => Math.random().toString().split(".")[1];
 
   switch (action.type) {
 
@@ -56,7 +56,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
         }
 
       case "BEGIN_BOX_TRANSFORM": {
-        const { box, directions } = action.payload
+        const { box, directions } = action.payload;
 
         var BEGIN_BOX_TRANSFORM_STATE = {
           ...state,
@@ -98,10 +98,10 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
       }
 
       case "MOUSE_DOWN": {
-        const { x, y } = action.payload
+        const { x, y } = action.payload;
 
         if (!state.images[state.selectedImage]) {
-          return state
+          return state;
         }
     
         var _MOUSE_DOWN_STATE = {
@@ -111,9 +111,9 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
       
         var newRegion: Region;
         var defaultRegionColor = state.colors[0] || "#f44336";
-        const clsIndex = (_MOUSE_DOWN_STATE.regionClsList || []).indexOf(_MOUSE_DOWN_STATE.selectedCls)
+        const clsIndex = (_MOUSE_DOWN_STATE.regionClsList || []).indexOf(_MOUSE_DOWN_STATE.selectedCls);
         if (clsIndex !== -1) {
-          defaultRegionColor = _MOUSE_DOWN_STATE.colors[clsIndex % _MOUSE_DOWN_STATE.colors.length]
+          defaultRegionColor = _MOUSE_DOWN_STATE.colors[clsIndex % _MOUSE_DOWN_STATE.colors.length];
         }
      
         switch (_MOUSE_DOWN_STATE.selectedTool) {
@@ -129,7 +129,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
               id: getRandomId(),
               cls: _MOUSE_DOWN_STATE.selectedCls,
             }
-            break
+            break;
           }
           
           case "create-box": {
@@ -156,11 +156,11 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
                 isNew: true,
               }
             }
-            break
+            break;
           }
 
           default:
-            break
+            break;
         }
      
         return {
@@ -184,14 +184,14 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
 
 
       case "MOUSE_MOVE": {
-        const { x, y } = action.payload
+        const { x, y } = action.payload;
   
         if (!state.mode) {
-          return state
+          return state;
         }
 
         if (!state.images[state.selectedImage]) {
-          return state
+          return state;
         }
 
         var _MOUSE_MOVE_STATE = {
@@ -205,22 +205,22 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
               regionId,
               freedom: [xFree, yFree],
               original: { x: ox, y: oy, w: ow, h: oh },
-            } = state.mode
+            } = state.mode;
 
-            const dx = xFree === 0 ? ox : xFree === -1 ? Math.min(ox + ow, x) : ox
+            const dx = xFree === 0 ? ox : xFree === -1 ? Math.min(ox + ow, x) : ox;
             const dw =
               xFree === 0
                 ? ow
                 : xFree === -1
                 ? ow + (ox - dx)
-                : Math.max(0, ow + (x - ox - ow))
-            const dy = yFree === 0 ? oy : yFree === -1 ? Math.min(oy + oh, y) : oy
+                : Math.max(0, ow + (x - ox - ow));
+            const dy = yFree === 0 ? oy : yFree === -1 ? Math.min(oy + oh, y) : oy;
             const dh =
               yFree === 0
                 ? oh
                 : yFree === -1
                 ? oh + (oy - dy)
-                : Math.max(0, oh + (y - oy - oh))
+                : Math.max(0, oh + (y - oy - oh));
 
             // determine if we should switch the freedom
 
@@ -228,8 +228,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
               _MOUSE_MOVE_STATE = {
                 ..._MOUSE_MOVE_STATE, 
                 mode: {
-                  ..._MOUSE_MOVE_STATE.mode,
-                  //@ts-ignore
+                  ..._MOUSE_MOVE_STATE.mode as Mode_ResizeBox,
                   freedom: [xFree * -1, yFree]
                 }
               }
@@ -239,18 +238,10 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
               _MOUSE_MOVE_STATE = {
                 ..._MOUSE_MOVE_STATE,
                 mode: {
-                  ..._MOUSE_MOVE_STATE.mode,
-                  //@ts-ignore
+                  ..._MOUSE_MOVE_STATE.mode as Mode_ResizeBox,
                   freedom: [xFree, yFree * -1]
                 }
               }
-            }
-
-            const regionIndex = (state.images[state.selectedImage].regions || [])
-              .findIndex((r) => r.id === regionId)
-
-            if (regionIndex === -1) {
-              return _MOUSE_MOVE_STATE
             }
 
             return {
@@ -259,8 +250,8 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
                 index === _MOUSE_MOVE_STATE.selectedImage
                 ? { 
                     ...image, 
-                    regions: (image.regions || []).map((region, rIndex) => 
-                      rIndex === regionIndex
+                    regions: (image.regions || []).map((region) => 
+                      region.id === regionId
                         ? {
                           ...region, 
                           x: dx,
@@ -277,17 +268,14 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
           }
 
           case "MOVE_REGION": {
-            const regionIndex = (_MOUSE_MOVE_STATE.images[_MOUSE_MOVE_STATE.selectedImage].regions || [])
-              .findIndex((r) => r.id === _MOUSE_MOVE_STATE.mode.regionId)
-
             return {
               ..._MOUSE_MOVE_STATE,
               images: _MOUSE_MOVE_STATE.images.map((image, index) =>
                 index === _MOUSE_MOVE_STATE.selectedImage
                 ? { 
                     ...image,
-                    regions: (image.regions || []).map((region, rIndex) => 
-                      rIndex === regionIndex
+                    regions: (image.regions || []).map((region) => 
+                      region.id === _MOUSE_MOVE_STATE.mode.regionId
                       ? region.type === "box"
                         ? { 
                             ...region, 
@@ -307,21 +295,19 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
                 : image
               )
             }
-              // [...pathToActiveImage, "regions", regionIndex],
-              // moveRegion(activeImage.regions[regionIndex], x, y)
           }
 
           default:
-            return _MOUSE_MOVE_STATE
+            return _MOUSE_MOVE_STATE;
         }
       }
 
 
       case "MOUSE_UP": {
-        const { x, y } = action.payload
+        const { x, y } = action.payload;
 
         if (!state.mode) {
-          return state
+          return state;
         }
 
         var _MOUSE_UP_STATE: IAnnotatorState = {
@@ -337,23 +323,13 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
                 Math.abs(_MOUSE_UP_STATE.mode.original.x - x) < 0.002 ||
                 Math.abs(_MOUSE_UP_STATE.mode.original.y - y) < 0.002
               ) {
-
-                const regionIndex = (_MOUSE_UP_STATE.images[_MOUSE_UP_STATE.selectedImage].regions || [])
-                  .findIndex((r) => r.id === _MOUSE_UP_STATE.mode.regionId)
-
-                if (regionIndex === -1) {
-                  return _MOUSE_MOVE_STATE
-                }
-
-                const region = _MOUSE_UP_STATE.images[state.selectedImage]?.regions[regionIndex]
-
                 return {
                   ..._MOUSE_UP_STATE,
                   images: _MOUSE_UP_STATE.images.map((image, index) =>
                     index === _MOUSE_UP_STATE.selectedImage
                     ? { 
                       ...image, 
-                      regions: (image.regions || []).filter((r) => r.id !== region.id)
+                      regions: (image.regions || []).filter((r) => r.id !== _MOUSE_UP_STATE.mode.regionId)
                     }
                     : image
                   ),
@@ -362,22 +338,14 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
               }
             }
             if (_MOUSE_UP_STATE.mode.editLabelEditorAfter) {
-
-              const regionIndex = (_MOUSE_UP_STATE.images[_MOUSE_UP_STATE.selectedImage].regions || [])
-              .findIndex((r) => r.id === _MOUSE_UP_STATE.mode.regionId)
-
-              if (regionIndex === -1) {
-                return _MOUSE_UP_STATE
-              }
-
               return {
                 ..._MOUSE_UP_STATE,
                 images: _MOUSE_UP_STATE.images.map((image, index) =>
                     index === _MOUSE_UP_STATE.selectedImage
                     ? {
                       ...image,
-                      regions: (image.regions || []).map((region, rIndex) => 
-                        rIndex === regionIndex
+                      regions: (image.regions || []).map((region) => 
+                        region.id === _MOUSE_UP_STATE.mode.regionId
                         ? {
                           ...region,
                           editingLabels: true
@@ -396,16 +364,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
             }
           }
 
-          case "MOVE_REGION":
-          case "RESIZE_KEYPOINTS":
-          case "MOVE_POLYGON_POINT": {
-            return { 
-              ..._MOUSE_UP_STATE, 
-              mode: null 
-            }
-          }
-
-          case "MOVE_KEYPOINT": {
+          case "MOVE_REGION": {
             return { 
               ..._MOUSE_UP_STATE, 
               mode: null 
@@ -437,11 +396,7 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
         var CHANGE_REGION_STATE = {
           ...state
         }
-        const activeImage = state.images[state.selectedImage]
-        const regionIndex = (activeImage.regions || []).findIndex(
-          (r) => r.id === action.payload.region.id
-        )
-        const oldRegion = state.images[state.selectedImage].regions[regionIndex]
+        const oldRegion = state.images[state.selectedImage]?.regions?.find(x => x.id === action.payload.region.id);
         if (oldRegion.cls !== action.payload.region.cls) {
           CHANGE_REGION_STATE = {
             ...CHANGE_REGION_STATE,
@@ -454,7 +409,6 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
             action.payload.region.color = CHANGE_REGION_STATE.colors[clsIndex % CHANGE_REGION_STATE.colors.length]
           }
         }
-
 
         return {
           ...CHANGE_REGION_STATE,
@@ -476,7 +430,6 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
 
       case "SELECT_REGION": {
         const { region } = action.payload
-
         return {
           ...state,
           images: state.images.map((image, index) =>
@@ -501,6 +454,31 @@ const AnnotatorReducer = (state: IAnnotatorState, action: AnnotatorActionType) :
         return {
           ...state,
           selectedImage: action.payload.imageIndex
+        }
+      }
+
+      case "HEADER_BUTTON_CLICKED": {
+        switch (action.payload.buttonName) {
+          case "previous": {
+            if (state.selectedImage === null || state.selectedImage === 0) {
+              return state;
+            }
+            return {
+              ...state,
+              selectedImage: state.selectedImage - 1
+            }
+          }
+          case "next": {
+            if (state.selectedImage === null || state.selectedImage === state.images.length - 1) {
+              return state;
+            }
+            return {
+              ...state,
+              selectedImage: state.selectedImage + 1
+            }
+          }
+          default:
+            return state
         }
       }
 

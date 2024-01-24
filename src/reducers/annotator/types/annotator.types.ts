@@ -4,26 +4,28 @@ export type ToolEnum =
   | "pan"
   | "zoom"
   | "create-point"
-  | "create-box"
+  | "create-box";
+
+export type HeaderItemEnum =
+  | "previous"
+  | "next"
+  | "save";
 
   export type Mode =
   | null
-  | { mode: "DRAW_POLYGON", regionId: string }
-  | { mode: "MOVE_POLYGON_POINT", regionId: string, pointIndex: number }
-  | {
-      mode: "RESIZE_BOX",
-      editLabelEditorAfter?: boolean,
-      regionId: string | number,
-      freedom: [number, number],
-      original: { x: number, y: number, w: number, h: number },
-      isNew?: boolean,
-    }
-  | { mode: "MOVE_REGION", regionId: string }
-  | { mode: "MOVE_KEYPOINT", regionId: string, keypointId: string }
-  | {
-      mode: "RESIZE_KEYPOINTS",
-      centerX: number,
-      centerY: number,
-      regionId: string,
-      isNew: boolean,
-    }
+  | Mode_ResizeBox
+  | Mode_MoveRegion;
+
+export type Mode_ResizeBox = {
+  mode: "RESIZE_BOX",
+  editLabelEditorAfter?: boolean,
+  regionId: string | number,
+  freedom: [number, number],
+  original: { x: number, y: number, w: number, h: number },
+  isNew?: boolean,
+}
+
+export type Mode_MoveRegion = {
+  mode: "MOVE_REGION", 
+  regionId: string 
+}

@@ -4,10 +4,24 @@ import useEventCallback from "hooks/useEventCallback";
 import AnnotatorReducer, { IAnnotatorState } from "reducers/annotator/annotatorReducer";
 import { ToolEnum } from "reducers/annotator/types/annotator.types";
 import Workspace from "./Workspace";
-import { SidebarItem } from "./types/workspace.types";
+import { HeaderItem, SidebarItem } from "./types/workspace.types";
 import ImageCanvas from "./ImageCanvas";
 import { AnnotatorActionType } from "reducers/annotator/annotatorActions";
 import annotatorActions from "reducers/annotator/annotatorActions";
+const { 
+  selectImageAction,
+  selectToolAction,
+  mouseMoveAction,
+  mouseDownAction,
+  mouseUpAction,
+  imageLoadedAction,
+  changeRegionAction,
+  beginBoxTransformationAction,
+  selectRegionAction,
+  beginMovePointAction,
+  deleteRegionAction,
+  SelectHeaderItemAction
+} = annotatorActions;
 
 
 interface IAnnotatorProps {
@@ -70,7 +84,7 @@ const Annotator: React.FC<IAnnotatorProps> = ({
     if (!selectedImage || !state?.images) {
       return;
     }
-    dispatchToReducer(annotatorActions.selectImageAction(selectedImage));
+    dispatchToReducer(selectImageAction(selectedImage));
   }, [selectedImage, state?.images]);
 
 
@@ -78,16 +92,21 @@ const Annotator: React.FC<IAnnotatorProps> = ({
     dispatchToReducer(action);
   })
 
-  const handleExit = () => {
-    return onExit?.(state);
-  }
-
   const action = <T extends (...args: Parameters<T>) => AnnotatorActionType>(callback: T) => {
     return (...args: Parameters<T>) => dispatch(callback(...args));
   }
 
-  const onClickIconSidebarItem = useEventCallback((item: SidebarItem) => {
-    dispatch(annotatorActions.selectToolAction(item.name));
+  const onClickSidebarItem = useEventCallback((item: SidebarItem) => {
+    dispatch(selectToolAction(item.name));
+  })
+
+  const onClickHeaderItem = useEventCallback((item: HeaderItem) => {
+    if (item.name === "save") {
+      return onExit?.(state);
+    }
+    else {
+      dispatch(SelectHeaderItemAction(item.name));
+    }
   })
 
   if (!images) {
@@ -98,32 +117,30 @@ const Annotator: React.FC<IAnnotatorProps> = ({
  
   return (
     <>
-      <button onClick={handleExit}>Exit</button>
-
+    { activeImage && (
       <Workspace
-        onItemClick={onClickIconSidebarItem}
+        title={activeImage.name}
+        onToolClick={onClickSidebarItem}
+        onHeaderItemClick={onClickHeaderItem}
       >
-        <>
-        { activeImage && (
-          <ImageCanvas
-            imageSrc={activeImage.src}
-            regions={activeImage.regions}
-            selectedTool={state.selectedTool}
-            regionClsList={state.regionClsList}
-            regionTagList={state.regionTagList}
-            onMouseMove={action(annotatorActions.mouseMoveAction)}
-            onMouseDown={action(annotatorActions.mouseDownAction)}
-            onMouseUp={action(annotatorActions.mouseUpAction)}
-            onImageLoaded={action(annotatorActions.imageLoadedAction)}
-            onChangeRegion={action(annotatorActions.changeRegionAction)}
-            onBeginBoxTransform={action(annotatorActions.beginBoxTransformationAction)}
-            onSelectRegion={action(annotatorActions.selectRegionAction)}
-            onBeginMovePoint={action(annotatorActions.beginMovePointAction)}
-            onDeleteRegion={action(annotatorActions.deleteRegionAction)}
-          />
-        )}
-        </>
+        <ImageCanvas
+          imageSrc={activeImage.src}
+          regions={activeImage.regions}
+          selectedTool={state.selectedTool}
+          regionClsList={state.regionClsList}
+          regionTagList={state.regionTagList}
+          onMouseMove={action(mouseMoveAction)}
+          onMouseDown={action(mouseDownAction)}
+          onMouseUp={action(mouseUpAction)}
+          onImageLoaded={action(imageLoadedAction)}
+          onChangeRegion={action(changeRegionAction)}
+          onBeginBoxTransform={action(beginBoxTransformationAction)}
+          onSelectRegion={action(selectRegionAction)}
+          onBeginMovePoint={action(beginMovePointAction)}
+          onDeleteRegion={action(deleteRegionAction)}
+        />
       </Workspace>
+    )}
     </>
   )
 }

@@ -6,7 +6,7 @@ import { Region } from "./types/annotator.types"
 import { MouseEvents } from "hooks/useMouse"
 import Matrix from "matrix"
 
-const TransformGrabber = styled.div<{ regioncolor: string}>`
+const TransformGrabber = styled.div<{ regioncolor: string }>`
   width: 8px;
   height: 8px;
   z-index: 2;

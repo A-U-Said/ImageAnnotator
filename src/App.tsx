@@ -23,6 +23,10 @@ const App = () => {
             {
               src: "https://upload.wikimedia.org/wikipedia/commons/b/b1/VAN_CAT.png",
               name: "cat",
+            },
+            {
+              src: "https://placekitten.com/408/287",
+              name: "Image 1",
             }
           ]}
           onExit={(output) => {

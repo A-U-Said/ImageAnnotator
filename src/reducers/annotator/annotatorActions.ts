@@ -1,5 +1,5 @@
 import { Region } from "components/types/annotator.types"
-import { ToolEnum } from "./types/annotator.types"
+import { HeaderItemEnum, ToolEnum } from "./types/annotator.types"
 
 
 export type AnnotatorActionType = 
@@ -13,7 +13,8 @@ export type AnnotatorActionType =
   DeleteRegionActionType |
   MouseMoveActionType |
   MouseDownActionType |
-  MouseUpActionType;
+  MouseUpActionType | 
+  SelectHeaderItemActionType;
 
 
 type SelectImageActionType = {
@@ -194,6 +195,22 @@ const mouseUpAction = ({ x, y } : { x: number, y: number }) : MouseUpActionType 
 }
 
 
+type SelectHeaderItemActionType = {
+  type: "HEADER_BUTTON_CLICKED",
+  payload: {
+    buttonName: HeaderItemEnum
+  }
+}
+const SelectHeaderItemAction = (buttonName: HeaderItemEnum) : SelectHeaderItemActionType => {
+  return {
+    type: "HEADER_BUTTON_CLICKED",
+    payload: {
+      buttonName: buttonName
+    }
+  }
+}
+
+
 const annotatorActions = {
   selectImageAction,
   selectToolAction,
@@ -205,7 +222,8 @@ const annotatorActions = {
   deleteRegionAction,
   mouseMoveAction,
   mouseDownAction,
-  mouseUpAction
+  mouseUpAction,
+  SelectHeaderItemAction
 }
 
 export default annotatorActions;
